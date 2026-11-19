@@ -65,7 +65,18 @@ function redactValue(v: unknown, count: { n: number }): unknown {
  * The one redaction pass every row goes through before it is written.
  * Returns null when the row must be dropped (its text was all secret, or a key field holds one).
  */
-export function redactRow(row: Row): Row | null {
+/** Lone UTF-16 surrogates (a character cut in half by a decoder) become U+FFFD, so Parquet holds valid UTF-8. */
+function wellFormed(v: unknown): unknown {
+  if (typeof v === "string") return v.toWellFormed();
+  if (Array.isArray(v)) return v.map(wellFormed);
+  if (v && typeof v === "object" && !(v instanceof Date)) {
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, wellFormed(x)]));
+  }
+  return v;
+}
+
+export function redactRow(input: Row): Row | null {
+  const row = wellFormed(input) as Row;
   for (const f of [row.id, row.author, row.thread_id, row.thread_name, row.reply_to]) {
     if (f && SECRET.test(f)) return null;
   }
