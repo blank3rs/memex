@@ -50,6 +50,21 @@ HERE = Path(__file__).resolve().parent
 KEEP = {"ok"}
 
 
+def _wf(s: str) -> str:
+    """Well-formed UTF-8: lone surrogates (a character cut in half upstream) become U+FFFD."""
+    return s.encode("utf-8", "surrogatepass").decode("utf-8", "replace")
+
+
+def _deep_wf(v: Any) -> Any:
+    if isinstance(v, str):
+        return _wf(v)
+    if isinstance(v, list):
+        return [_deep_wf(x) for x in v]
+    if isinstance(v, dict):
+        return {_wf(k): _deep_wf(x) for k, x in v.items()}
+    return v
+
+
 def _digest(*parts: str) -> str:
     return hashlib.sha1("\x00".join(parts).encode()).hexdigest()[:16]
 
@@ -66,6 +81,9 @@ def load_rows(src: Path) -> tuple[pa.Schema, list[dict[str, Any]]]:
     table = pa.concat_tables(tables, promote_options="default")
     rows: dict[str, dict[str, Any]] = {}
     for r in table.to_pylist():
+        r = {k: _wf(v) if isinstance(v, str) else v for k, v in r.items()}
+        if r.get("meta"):
+            r["meta"] = json.dumps(_deep_wf(json.loads(r["meta"])), ensure_ascii=False)
         rows.pop(r["id"], None)
         rows[r["id"]] = r
     return table.schema, list(rows.values())
