@@ -1,0 +1,23 @@
+# One regex fragment per line, matched case-insensitively as a whole word (not inside another word).
+# A match in a row's text or meta.context holds the row (label "slur"). Swearing is not here on purpose.
+# "retard"/"retarded" is left out on purpose: it is part of Akshay's own everyday voice. Add it here to hold it.
+n+[i1!|]+gg+(?:a|ah|as|az|uh|er|ers|ur|urs|ress|let|lets)?
+n+[i1!|]+gg+[e3]+r+s?
+f[a@4]gg?(?:[o0i]ts?|s|y|ier|iest)?
+dykes?
+trann(?:y|ies)
+shemales?
+chinks?(?!\s+in\b)
+gooks?
+spi(?:c|ck|k)s?
+wetbacks?
+beaners?
+kikes?
+pakis?
+ragheads?
+towelheads?
+coons?
+jungle\s*bunn(?:y|ies)
+porch\s*monkeys?
+kaffirs?
+zipperheads?
