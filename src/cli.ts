@@ -4,6 +4,7 @@ import { initCommand } from "./commands/init.js";
 import { addCommand } from "./commands/add.js";
 import { statusCommand } from "./commands/status.js";
 import { watchCommand } from "./commands/watch.js";
+import { exportCommand } from "./export/command.js";
 
 const program = new Command();
 
@@ -39,4 +40,14 @@ program
   .option("-w, --watch <path>", "Directory to watch for changes")
   .action(watchCommand);
 
-program.parse(process.argv);
+program
+  .command("export")
+  .description("Export raw text history as zstd Parquet rows (incremental; one JSON summary line per source)")
+  .requiredOption("-o, --out <dir>", "Output directory: <dir>/<source>/part-<runid>.parquet")
+  .option("-s, --sources <list>", "Comma-separated sources (default: all)")
+  .option("--since <iso>", "Only rows at or after this time")
+  .option("--full", "Ignore the watermark and rewrite each source as one fresh part")
+  .option("--roots <list>", "Comma-separated roots for the documents source (default: ~/Documents,~/Desktop)")
+  .action(exportCommand);
+
+program.parseAsync(process.argv);
